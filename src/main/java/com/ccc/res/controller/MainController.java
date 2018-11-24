@@ -120,11 +120,12 @@ public class MainController {
 	@RequestMapping(value = "/getquickcomplaints", method = RequestMethod.GET)
 	public @ResponseBody String getquickcomplaints() {
 		
-		String sql = " select a.*,b.subcategoryname "
-			       + " from quick_complaints a,subcategory b"
-				   + " where a.qc_assigned_status = false"
-				   + " and b.subcategoryid =  a.qc_complaint_subcategory "
-				   + " order by qc_requested_date asc ";
+		String sql = "   select a.*,b.subcategoryname,c.categoryname "
+				   + "   from quick_complaints a,subcategory b , category c "
+				   + "   where a.qc_assigned_status = false "
+				   + "   and b.subcategoryid =  a.qc_complaint_subcategory "
+				   + "   and c.categoryid = a.qc_complaint_category "
+				   + "   order by qc_requested_date asc  ";
 		try {
 			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
 			return gson.toJson(rows);
@@ -322,6 +323,46 @@ public class MainController {
 	public @ResponseBody String loadcomplaintpriority() {
 		
 		String sql = "select * from priority where prioritystatus = true ";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/registercomplaint", method = RequestMethod.GET)
+	public @ResponseBody String registercomplaint(
+			@RequestParam(value = "mobilenumber", required = true) String mobilenumber,
+			@RequestParam(value = "accountnumber", required = true) String accountnumber,
+			@RequestParam(value = "rrnumber", required = true) String rrnumber,
+			@RequestParam(value = "consumername", required = true) String consumername,
+			@RequestParam(value = "emailid", required = true) String emailid,
+			@RequestParam(value = "consumeraddress", required = true) String consumeraddress,
+			@RequestParam(value = "consumerdescription", required = true) String consumerdescription,
+			@RequestParam(value = "subdivision", required = true) String subdivision,
+			@RequestParam(value = "comaplintcategory", required = true) Integer comaplintcategory,
+			@RequestParam(value = "omsection", required = true) String omsection,
+			@RequestParam(value = "complaintsubcategory", required = true) Integer complaintsubcategory,
+			@RequestParam(value = "assignedto", required = true) String assignedto,
+			@RequestParam(value = "complaintmode", required = true) Integer complaintmode,
+			@RequestParam(value = "complaintstatus", required = true) Integer complaintstatus,
+			@RequestParam(value = "complaintpriority", required = true) Integer complaintpriority,
+			@RequestParam(value = "latitude", required = true) String latitude,
+			@RequestParam(value = "longitude", required = true) String longitude,
+			@RequestParam(value = "recsts", required = true) String recsts,
+			@RequestParam(value = "qc_pkid", required = true) Integer qc_pkid,
+			@RequestParam(value = "userid", required = true) String userid
+			
+			
+			) {
+		
+		String sql = "select * from insert_request ("+qc_pkid+",'"+mobilenumber+"','"+accountnumber+"', '"+rrnumber+"','"+consumername+"',"
+				+ "'"+consumeraddress+"','"+emailid+"','"+subdivision+"','"+omsection+"',"+comaplintcategory+", "+complaintsubcategory+", "
+						+ "'"+consumerdescription+"',"+complaintmode+","+complaintpriority+","+complaintstatus+","
+								+ "'"+assignedto+"','"+latitude+"','"+longitude+"','true','"+userid+"') ";
 		try {
 			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
 			return gson.toJson(rows);
