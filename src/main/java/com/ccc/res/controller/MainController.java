@@ -265,6 +265,7 @@ public class MainController {
 				   + " (c.cm_account_id = q.qc_account_id or c.cm_mobile_number = q.qc_mobile_number) "
 				   + " where  q.qc_account_id ='"+accountid+"' or q.qc_mobile_number='"+mobileno+"' ";
 		try {
+			System.out.println(sql);
 			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
 			return gson.toJson(rows);
 		} catch (RuntimeException e) {
@@ -374,9 +375,77 @@ public class MainController {
 	}
 	
 	
-	/*select q.*,c.*
-	from quick_complaints q
-	left outer join (select c.*,true recsts from consumer_master c) c on (c.cm_account_id = q.qc_account_id or c.cm_mobile_number = q.qc_mobile_number)
-	where  q.qc_account_id ='21101020100550201' or q.qc_mobile_number='9964630941'
+	@RequestMapping(value = "/searchconsumerdetails", method = RequestMethod.GET)
+	public @ResponseBody String searchconsumerdetails(
+			@RequestParam(value = "mobileno", required = true) String mobileno,
+			@RequestParam(value = "accountid", required = true) String accountid
+			) {
+		String sql = " select *  from   consumer_master "
+				   + " where  "
+				   + " case when '"+accountid+"'='' then true else cm_account_id ='"+accountid+"' end  and "
+				   + " case when '"+mobileno+"'='' then true else cm_mobile_number='"+mobileno+"' end "
+				   + "  ";
+		try {
+			System.out.println(sql);
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 	
-*/}
+	@RequestMapping(value = "/loadcomplaintupdates", method = RequestMethod.GET)
+	public @ResponseBody String loadcomplaintupdates() {
+		
+		String sql = "select * from complient_updates where status = true ";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}	
+	
+	@RequestMapping(value = "/getdashboardreportsummary", method = RequestMethod.GET)
+	public @ResponseBody String getdashboardreportsummary(
+			@RequestParam(value = "location", required = true) String location,
+			@RequestParam(value = "modeid", required = true) Integer modeid,
+			@RequestParam(value = "fromdate", required = true) String fromdate,
+			@RequestParam(value = "todate", required = true) String todate
+			) {
+		
+		String sql = " select * from ccc_getdashboardreportsummary('"+location+"',"+modeid+",'"+fromdate+"','"+todate+"') ";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/getdashboardcomplaintdetais", method = RequestMethod.GET)
+	public @ResponseBody String getdashboardcomplaintdetais(
+			@RequestParam(value = "location", required = true) String location,
+			@RequestParam(value = "categoryid", required = true) Integer categoryid,
+			@RequestParam(value = "statusid", required = true) String statusid,
+			@RequestParam(value = "modeid", required = true) String modeid
+			) {
+		
+		String sql = " select * from ccc_getdashboardcomplaintdetais('"+location+"',"+categoryid+","+statusid+","+modeid+") ";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+}
