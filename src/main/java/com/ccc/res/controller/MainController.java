@@ -320,6 +320,22 @@ public class MainController {
 		}
 	}
 	
+	@RequestMapping(value = "/loadcomplaintstatusmappings", method = RequestMethod.GET)
+	public @ResponseBody String loadcomplaintstatusmappings(
+			@RequestParam(value = "statusid", required = true) Integer statusid
+			) {
+		
+		String sql = "select * from ccc_getcomplaintstatusmapping("+statusid+") ";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
 	@RequestMapping(value = "/loadcomplaintpriority", method = RequestMethod.GET)
 	public @ResponseBody String loadcomplaintpriority() {
 		
@@ -447,5 +463,173 @@ public class MainController {
 			throw new RuntimeException(e);
 		}
 	}
+	
+	@RequestMapping(value = "/insertcomment", method = RequestMethod.GET)
+	public @ResponseBody String registercomplaint(
+			@RequestParam(value = "requestid", required = true) Integer requestid,
+			@RequestParam(value = "docketno", required = true) String docketno,
+			@RequestParam(value = "userid", required = true) Integer userid,
+			@RequestParam(value = "username", required = true) String username ,
+			@RequestParam(value = "comments", required = true) String comments,
+			@RequestParam(value = "statusid", required = true) Integer statusid,
+			@RequestParam(value = "statusname", required = true) String statusname,
+			@RequestParam(value = "relpath", required = true) String relpath,
+			@RequestParam(value = "firstname", required = true) String firstname,
+			@RequestParam(value = "middlename", required = true) String middlename,
+			@RequestParam(value = "lastname", required = true) String lastname,
+			@RequestParam(value = "updatesid", required = true) Integer updatesid,
+			@RequestParam(value = "updatesname", required = true) String updatesname
+			) {
+		
+		String sql = "select * from insert_comment("+requestid+",'"+docketno+"', "+userid+", '"+username+"','"+comments+"',"+statusid+","
+				+ "'"+statusname+"',"+updatesid+","
+				+ "'"+updatesname+"','"+relpath+"','"+firstname+"','"+middlename+"','"+lastname+"') " ;
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/getcommentslist", method = RequestMethod.GET)
+	public @ResponseBody String getcommentslist(
+			@RequestParam(value = "docketno", required = true) String docketno,
+			@RequestParam(value = "requestid", required = true) Integer requestid
+			) {
+		
+		String sql = " select * from comments where requestid = "+requestid+" and docketno = '"+docketno+"' order by  cdate desc ";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/getmaindashboarddetails", method = RequestMethod.GET)
+	public @ResponseBody String getmaindashboarddetails(
+			@RequestParam(value = "docketno", required = false) String docketno,
+			@RequestParam(value = "requestid", required = false) Integer requestid
+			) {
+		
+		String sql = " select count(*) total,sum(case when status_id in (1,2,4,6,8) then 1 else 0 end) pending, "
+				   + " sum(case when status_id in (5,7) then 1 else 0 end) resolved, sum(case when status_id in (3) then 1 else 0 end) rejected "
+				   + " from requests r,officer_details od "
+				   + " where od.od_pkid = r.officer_id "
+				   + " and (od.od_locatoin_code like '2110%' or od_pkid =null) "
+				   + " and case when '2015-01-01'='' and '2018-11-30'='' then true else r.opendate::date between  '2015-01-01'::date and '2018-11-30'::date end "
+				   + " and (case when '0'='0' then true else r.status_id = any(string_to_array('0', ',')::int[]) end) "
+				   + " and (case when '0'='0' then true else r.mode_id = any(string_to_array('0', ',')::int[]) end) ";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/getdashboardcategorywisedetails", method = RequestMethod.GET)
+	public @ResponseBody String getdashboardcategorywisedetails(
+			@RequestParam(value = "locationcode", required = false) String locationcode,
+			@RequestParam(value = "statusname", required = false) String statusname,
+			@RequestParam(value = "fromdate", required = false) String fromdate,
+			@RequestParam(value = "todate", required = false) String todate
+			) {
+		
+		String sql = "select * from ccc_getdashboardcategorywisedetails('"+locationcode+"','"+statusname+"','"+fromdate+"','"+todate+"') ";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/getdashboarddepartmentwisedetails", method = RequestMethod.GET)
+	public @ResponseBody String getdashboarddepartmentwisedetails(
+			@RequestParam(value = "locationcode", required = false) String locationcode,
+			@RequestParam(value = "statusname", required = false) String statusname,
+			@RequestParam(value = "fromdate", required = false) String fromdate,
+			@RequestParam(value = "todate", required = false) String todate
+			) {
+		
+		String sql = "select * from ccc_getdashboarddepartmentwisedetails('"+locationcode+"','"+statusname+"','"+fromdate+"','"+todate+"') ";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/getdashboardmodewisedetails", method = RequestMethod.GET)
+	public @ResponseBody String getdashboardmodewisedetails(
+			@RequestParam(value = "locationcode", required = false) String locationcode,
+			@RequestParam(value = "statusname", required = false) String statusname,
+			@RequestParam(value = "fromdate", required = false) String fromdate,
+			@RequestParam(value = "todate", required = false) String todate
+			) {
+		
+		String sql = "select * from ccc_getdashboardmodewisedetails('"+locationcode+"','"+statusname+"','"+fromdate+"','"+todate+"') ";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	
+	@RequestMapping(value = "/getdahboardcomplaintlist", method = RequestMethod.GET)
+	public @ResponseBody String getdahboardcomplaintlist(
+			@RequestParam(value = "locationcode", required = false) String locationcode,
+			@RequestParam(value = "statusname", required = false) String statusname,
+			@RequestParam(value = "fromdate", required = false) String fromdate,
+			@RequestParam(value = "todate", required = false) String todate
+			) {
+		
+		String sql = "select * from ccc_getdashboardcomplientslist('"+locationcode+"','"+fromdate+"','"+todate+"') ";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/getdashboardlocationwisesummary", method = RequestMethod.GET)
+	public @ResponseBody String getdashboardlocationwisesummary(
+			@RequestParam(value = "locationcode", required = false) String locationcode,
+			@RequestParam(value = "statusname", required = false) String statusname,
+			@RequestParam(value = "fromdate", required = false) String fromdate,
+			@RequestParam(value = "todate", required = false) String todate
+			) {
+		
+		String sql = "select * from ccc_getdashboardlocationwisesummary('"+locationcode+"','"+fromdate+"','"+todate+"')";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
 
 }
