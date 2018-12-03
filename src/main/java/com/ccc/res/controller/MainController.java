@@ -631,5 +631,26 @@ public class MainController {
 		}
 	}
 	
-
+	@RequestMapping(value = "/getcomparisoindata", method = RequestMethod.GET)
+	public @ResponseBody String getcomparisoindata(
+			@RequestParam(value = "locationcode", required = false) String locationcode,
+			@RequestParam(value = "statusname", required = false) String statusname,
+			@RequestParam(value = "fromdate", required = false) String fromdate,
+			@RequestParam(value = "todate", required = false) String todate,
+			@RequestParam(value = "category", required = false) String category,
+			@RequestParam(value = "year", required = false) String year
+			) {
+		
+		String sql = "select * from ccc_getdashboardcomplientscomparision('"+locationcode+"','"+category+"','"+year+"')";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	
 }
