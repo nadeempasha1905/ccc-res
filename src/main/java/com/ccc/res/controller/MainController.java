@@ -652,5 +652,53 @@ public class MainController {
 		}
 	}
 	
+	@RequestMapping(value = "/trackcomplaint", method = RequestMethod.GET)
+	public @ResponseBody String trackcomplaint(
+			@RequestParam(value = "docketnumber", required = false) String docketnumber
+			) {
+		
+		String sql = "select * from ccc_gettrackcomplientdetails('"+docketnumber+"')";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/getdashboard_agewise_summary", method = RequestMethod.GET)
+	public @ResponseBody String getdashboard_agewise_summary(
+			@RequestParam(value = "locationcode", required = false) String locationcode
+			) {
+		
+		String sql = "select * from ccc_getdashboard_agewise_summary('"+locationcode+"')";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/getdashboard_resolution_status_summary", method = RequestMethod.GET)
+	public @ResponseBody String getdashboard_resolution_status_summary(
+			@RequestParam(value = "locationcode", required = false) String locationcode
+			) {
+		
+		String sql = " select * from ccc_getdashboard_resolution_status_summary('"+locationcode+"')";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
 	
 }
