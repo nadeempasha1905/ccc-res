@@ -3,13 +3,25 @@
  */
 package com.ccc.res.controller;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +32,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+
 /**
  * @author Administrator
  *
@@ -28,6 +46,9 @@ import com.google.gson.GsonBuilder;
 @Controller
 @RequestMapping("/query")
 public class MainController {
+	
+	@Value("${ccc.reports}")
+    private String ReportsHome;
 	
 	@Autowired
 	JdbcTemplate jdbcTemplate;
@@ -153,11 +174,13 @@ public class MainController {
 	}
 	
 	@RequestMapping(value = "/getzonelist", method = RequestMethod.GET)
-	public @ResponseBody String getzonelist() {
+	public @ResponseBody String getzonelist(
+			@RequestParam(value = "locationcode", required = true) String locationcode) {
 		
 		String sql = " select ld_id,ld_code,ld_name,ld_type "
 			       + " from location_details "
-				   + " where ld_type = 'ZN' ";
+				   + " where ld_type = 'ZN' "
+				   + " and ld_code ilike '"+locationcode+"%' ";
 		try {
 			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
 			return gson.toJson(rows);
@@ -169,11 +192,13 @@ public class MainController {
 	}
 	
 	@RequestMapping(value = "/getcirclelist", method = RequestMethod.GET)
-	public @ResponseBody String getcirclelist() {
+	public @ResponseBody String getcirclelist(
+			@RequestParam(value = "locationcode", required = true) String locationcode) {
 		
 		String sql = " select ld_id,ld_code,ld_name,ld_type "
 			       + " from location_details "
-				   + " where ld_type = 'CR' ";
+				   + " where ld_type = 'CR' "
+				   + " and ld_code ilike '"+locationcode+"%' ";
 		try {
 			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
 			return gson.toJson(rows);
@@ -185,11 +210,31 @@ public class MainController {
 	}
 	
 	@RequestMapping(value = "/getdivisionlist", method = RequestMethod.GET)
-	public @ResponseBody String getdivisionlist() {
+	public @ResponseBody String getdivisionlist(
+			@RequestParam(value = "locationcode", required = true) String locationcode) {
 		
 		String sql = " select ld_id,ld_code,ld_name,ld_type "
 			       + " from location_details "
-				   + " where ld_type = 'DN' ";
+				   + " where ld_type = 'DN' "
+				   + " and ld_code ilike '"+locationcode+"%' ";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/getsubdivisionlistbydivision", method = RequestMethod.GET)
+	public @ResponseBody String getsubdivisionlist(
+			@RequestParam(value = "locationcode", required = true) String locationcode) {
+		
+		String sql = " select ld_id,ld_code,ld_name,ld_type "
+			       + " from location_details "
+				   + " where ld_type = 'SD' "
+				   + " and ld_code ilike '"+locationcode+"%' ";
 		try {
 			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
 			return gson.toJson(rows);
@@ -464,6 +509,38 @@ public class MainController {
 		}
 	}
 	
+	@RequestMapping(value = "/getmycomplaints", method = RequestMethod.GET)
+	public @ResponseBody String getmycomplaints(
+			@RequestParam(value = "userid", required = true) String userid
+			) {
+		
+		String sql = " select * from ccc_getmycomplaints('"+userid+"') ";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/getsearchcomplaintdetais", method = RequestMethod.GET)
+	public @ResponseBody String getsearchcomplaintdetais(
+			@RequestParam(value = "docketnumber", required = true) String docketnumber
+			) {
+		
+		String sql = " select * from ccc_getsearchcomplaintdetais('"+docketnumber+"') ";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
 	@RequestMapping(value = "/insertcomment", method = RequestMethod.GET)
 	public @ResponseBody String registercomplaint(
 			@RequestParam(value = "requestid", required = true) Integer requestid,
@@ -693,6 +770,205 @@ public class MainController {
 		try {
 			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
 			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/getdashboard_locationwise_complients_summary", method = RequestMethod.GET)
+	public @ResponseBody String getdashboard_resolution_status_summary(
+			@RequestParam(value = "locationcode", required = false) String locationcode,
+			@RequestParam(value = "year", required = false) String year
+			) {
+		
+		String sql = " select * from ccc_getdashboard_locationwise_complients_summary('"+locationcode+"','"+year+"')";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/getuserinfo", method = RequestMethod.GET)
+	public @ResponseBody String getuserinfo(
+			@RequestParam(value = "username", required = true) String username
+			) {
+		
+		String sql = "select * from ccc_getuserdetails('"+username+"')" ;
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+    @RequestMapping(value = "/generatereports", method = RequestMethod.GET)
+    public @ResponseBody
+    void sformunsubmittedreport(
+            @RequestParam(value = "locationcode", required = true) String locationcode,
+            @RequestParam(value = "fromdate", required = true) String fromdate,
+            @RequestParam(value = "todate", required = true) String todate,
+            @RequestParam(value = "reporttype", required = true) Integer reporttype,
+            
+            HttpServletRequest request,
+            HttpServletResponse response) throws JRException, IOException {
+
+	        Map<String, Object> map = new HashMap<>();
+	        map.put("location_code", locationcode);
+	        map.put("imagepath", ReportsHome+"logo_mescom_new.png");
+	        map.put("title", "Compaint Wise Details");
+	        map.put("fromdate", fromdate);
+	        map.put("todate", todate);
+	        Connection con = null;
+	       
+	        try {
+	        	
+	        	String filepath1 = null,filepath2 = null,file = null;
+	        	
+	        	if(reporttype == 1){
+	        		file      = "categorywise_complients_report";
+		            filepath1 = ReportsHome + "/categorywise_complients_report.jrxml";
+		            filepath2 = ReportsHome + "/categorywise_complients_report.jasper";
+	        	}else if(reporttype == 2){
+	        		file      = "departmentwise_complients_report";
+		            filepath1 = ReportsHome + "/departmentwise_complients_report.jrxml";
+		            filepath2 = ReportsHome + "/departmentwise_complients_report.jasper";
+	        	}else if(reporttype == 3){
+	        		file      = "locationwise_complients_report";
+		            filepath1 = ReportsHome + "/locationwise_complients_report.jrxml";
+		            filepath2 = ReportsHome + "/locationwise_complients_report.jasper";
+	        	}else if(reporttype == 4){
+	        		file      = "modewise_complients_report";
+		            filepath1 = ReportsHome + "/modewise_complients_report.jrxml";
+		            filepath2 = ReportsHome + "/modewise_complients_report.jasper";
+	        	}else if(reporttype == 5){
+	        		file      = "subcategorywise_complients_report";
+		            filepath1 = ReportsHome + "/subcategorywise_complients_report.jrxml";
+		            filepath2 = ReportsHome + "/subcategorywise_complients_report.jasper";
+	        	}
+	
+	            con = jdbcTemplate.getDataSource().getConnection();
+	            JasperCompileManager.compileReportToFile(filepath1, filepath2);
+	            JasperPrint jasperPrint = JasperFillManager.fillReport(filepath2, map, con);
+	            con.close();
+	            String pattern = "dd-MM-yyyy";
+	            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+	            String date = simpleDateFormat.format(new java.util.Date());
+	
+	            String fileName = file + "_" + date + ".pdf";
+	
+	            response.setContentType("application/pdf");
+	            response.setHeader("Content-disposition", "inline; filename=" + fileName);
+	            OutputStream outStream = response.getOutputStream();
+	            //JasperExportManager.exportReportToPdfStream(jp, outStream); // since this doesn't send the content length, broken pipe errors occur w/ some browsers
+	            final byte[] pdfBytes = JasperExportManager.exportReportToPdf(jasperPrint);
+	            response.setContentLength(pdfBytes.length);
+	            final ByteArrayInputStream bais = new ByteArrayInputStream(pdfBytes);
+	            IOUtils.copy(bais, outStream);
+	            outStream.flush();
+	            IOUtils.closeQuietly(bais);
+	            IOUtils.closeQuietly(outStream);
+	        } catch (SQLException e) {
+	
+	            e.printStackTrace();
+	        }
+
+    }
+    
+	@RequestMapping(value = "/getstationlist", method = RequestMethod.GET)
+	public @ResponseBody String getstationlist(
+			@RequestParam(value = "locationcode", required = true) String locationcode) {
+		
+		String sql = " select * from station_master "
+				   + " where  sm_location_code ilike '"+locationcode+"%' ";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/loadinterruptiondetails", method = RequestMethod.GET)
+	public @ResponseBody String loadinterruptiondetails() {
+		
+		String sql = " select * from interruptions ";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/getfeederlist", method = RequestMethod.GET)
+	public @ResponseBody String getfeederlist(
+			@RequestParam(value = "stationcode", required = false) String stationcode,
+			@RequestParam(value = "stationid", required = false) Integer stationid) {
+		
+		String sql = " select * from feeder_master "
+				   + " where  fm_station_id = '"+stationid+"' ";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/insertinterruption", method = RequestMethod.GET)
+	public @ResponseBody String insertinterruption(
+			@RequestParam(value = "statiocode", required = true) String statiocode,
+			@RequestParam(value = "stationname", required = true) String stationname,
+			@RequestParam(value = "interruptiontype", required = true) String interruptiontype,
+			@RequestParam(value = "fromdate", required = true) String fromdate,
+			@RequestParam(value = "todate", required = true) String todate,
+			@RequestParam(value = "reason", required = true) String reason,
+			@RequestParam(value = "feedercode", required = true) String feedercode,
+			@RequestParam(value = "feedername", required = true) String feedername,
+			@RequestParam(value = "userid", required = true) String userid
+			) {
+		
+		String status = "" ;
+		
+		JSONObject json = new JSONObject();
+		
+		String sql =  " INSERT INTO interruptions(ir_station_code,ir_station_name,ir_type,ir_from,ir_to,ir_reason,ir_created_by,ir_created_on,"
+				+ "  ir_feeder_code,  ir_feeder_name) "					+ " values "
+					+ " ('"+statiocode+"','"+stationname+"','"+interruptiontype+"','"+fromdate+"','"+todate+"','"+reason+"',"
+							+ "'"+userid+"',now(),'"+feedercode+"','"+feedername+"') ";
+		try {
+			/*List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);*/
+			
+			System.out.println(sql);
+			
+			int result = jdbcTemplate.update(sql);
+			
+			if(result > 0){
+				status = "success"; 
+				json.put("status", true);
+				json.put("message", "Interruption added successfully !!!");
+			}else{
+				status = "error";
+				json.put("status", false);
+				json.put("message", "Cannot add Interruption !!!");
+			}
+			
+			return gson.toJson(json);
 		} catch (RuntimeException e) {
 			throw e;
 		} catch (Exception e) {

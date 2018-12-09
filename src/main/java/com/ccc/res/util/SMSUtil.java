@@ -52,7 +52,7 @@ public class SMSUtil {
 		BufferedReader reader=null;
 		String encoded_message=URLEncoder.encode(message); //encoding message 
 		//String mainUrl="http://117.239.178.202/sendsms.php?"; //Send SMS API
-		String mainUrl="https://promo.solutionsinfini.com/api/v4/?api_key=A63ca323fc56c0dae39479fe4b91a9a01&method=sms&message=test&to=9844845442&sender=BULKSMS"; //Send SMS API
+		String mainUrl="http://promo.solutionsinfini.com/api/web2sms.php?workingkey=A63ca323fc56c0dae39479fe4b91a9a01&to=+919449445488&sender=BULKSMS&message=test&unicode=1"; //Send SMS API
 		
 		String campaign_id = "30";
 	
@@ -65,7 +65,7 @@ public class SMSUtil {
 		
 		System.out.println(mainUrl);
 		
-		mainUrl = sbPostData.toString();
+		//mainUrl = sbPostData.toString();
 		try{
 		    myURL = new URL(mainUrl);
 		    myURLConnection = myURL.openConnection();
