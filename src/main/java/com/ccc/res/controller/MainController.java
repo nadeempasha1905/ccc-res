@@ -476,10 +476,11 @@ public class MainController {
 			@RequestParam(value = "location", required = true) String location,
 			@RequestParam(value = "modeid", required = true) Integer modeid,
 			@RequestParam(value = "fromdate", required = true) String fromdate,
-			@RequestParam(value = "todate", required = true) String todate
+			@RequestParam(value = "todate", required = true) String todate,
+			@RequestParam(value = "department_id", required = true) Integer department_id
 			) {
 		
-		String sql = " select * from ccc_getdashboardreportsummary('"+location+"',"+modeid+",'"+fromdate+"','"+todate+"') ";
+		String sql = " select * from ccc_getdashboardreportsummary('"+location+"',"+modeid+",'"+fromdate+"','"+todate+"',"+department_id+") ";
 		try {
 			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
 			return gson.toJson(rows);
