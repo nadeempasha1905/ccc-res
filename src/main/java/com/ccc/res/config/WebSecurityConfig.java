@@ -81,7 +81,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	                "/query/loadcategories",
 	                "/query/loadsubcategories",
 	                "/query/registerquickcomplaint",
-	                "/query/trackcomplaint"
+	                "/query/trackcomplaint",
+	                "/mobilequery/mobileverifyuser",
+	                "/mobilequery/getuserinfo",
+	                "/mobilequery/loadcategories",
+	                "/mobilequery/getdashboardcomplaintdetais",
+	                "/mobilequery/loadcomplaintupdates",
+	                "/mobilequery/loadcomplaintstatusmappings",
+	                "/mobilequery/insertcomment"
 					);
 		}
 	
