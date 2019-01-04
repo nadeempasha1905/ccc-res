@@ -11,6 +11,6 @@ import com.ccc.res.dto.Request;
  * @author Administrator
  *
  */
-public interface RequestRepositry extends PagingAndSortingRepository<Request,Integer> {
+public interface RequestRepositry extends PagingAndSortingRepository<Request,Long> {
 
 }

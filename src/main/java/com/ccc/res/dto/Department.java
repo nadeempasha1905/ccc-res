@@ -9,11 +9,14 @@ import javax.persistence.*;
  * 
  */
 @Entity
+@Table(name="department")
 @NamedQuery(name="Department.findAll", query="SELECT d FROM Department d")
 public class Department implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@SequenceGenerator(name="department_ID_GENERATOR", sequenceName="departments_dep_pkid_seq",allocationSize=1)
+	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="department_ID_GENERATOR")
 	private Long departmentidpk;
 
 	private Long departmentid;

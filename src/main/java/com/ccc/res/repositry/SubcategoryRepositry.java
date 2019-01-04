@@ -12,6 +12,6 @@ import com.ccc.res.dto.Subcategory;
  * @author Administrator
  *
  */
-public interface SubcategoryRepositry extends PagingAndSortingRepository<Subcategory, Integer> {
+public interface SubcategoryRepositry extends PagingAndSortingRepository<Subcategory, Long> {
 
 }

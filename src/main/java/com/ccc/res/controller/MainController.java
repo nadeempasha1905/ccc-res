@@ -64,6 +64,78 @@ public class MainController {
 		super();
 	}
 	
+	@RequestMapping(value = "/getdepartmentlist", method = RequestMethod.GET)
+	public @ResponseBody String getdepartmentlist() {
+		
+		String sql = "select * from department order by departmentid ";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/getdesignationslist", method = RequestMethod.GET)
+	public @ResponseBody String getdesignationslist() {
+		
+		String sql = "select * from designations order by dsg_id ";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/getcadrelist", method = RequestMethod.GET)
+	public @ResponseBody String getcadrelist() {
+		
+		String sql = "select * from cadre order by cdr_id ";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/getstationslist", method = RequestMethod.GET)
+	public @ResponseBody String getstationslist() {
+		
+		String sql = "select * from station_master order by sm_station_id ";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/getfeederslist", method = RequestMethod.GET)
+	public @ResponseBody String getfeederslist(
+			@RequestParam(value = "stationid", required = true) Integer stationid
+			) {
+		
+		String sql = "select * from feeder_master order by fm_feeder_id ";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
 	
 	@RequestMapping(value = "/loadcategories", method = RequestMethod.GET)
 	public @ResponseBody String getloadcategories() {
