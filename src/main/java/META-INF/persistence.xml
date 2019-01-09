@@ -13,5 +13,6 @@
 		<class>com.ccc.res.dto.Department</class>
 		<class>com.ccc.res.dto.StationMaster</class>
 		<class>com.ccc.res.dto.FeederMaster</class>
+		<class>com.ccc.res.dto.UserMaster</class>
 	</persistence-unit>
 </persistence>

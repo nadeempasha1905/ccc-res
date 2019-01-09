@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,8 +32,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.ccc.res.util.PasswordEncoderUtil;
+import com.ccc.res.util.SMSUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.ibm.icu.util.BytesTrie.Iterator;
 
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
@@ -48,6 +51,18 @@ import net.sf.jasperreports.engine.JasperPrint;
 @Controller
 @RequestMapping("/query")
 public class MainController {
+	
+	@Value("${ccc.hostname}")
+    private String ccchostname;
+	
+	@Value("${ccc.workingkey}")
+    private String cccworkingkey;
+	
+	@Value("${ccc.sender}")
+    private String cccsender;
+	
+	@Value("${ccc.unicode}")
+    private String cccunicode;
 	
 	@Value("${ccc.reports}")
     private String ReportsHome;
@@ -222,6 +237,22 @@ public class MainController {
 				   + "   and b.subcategoryid =  a.qc_complaint_subcategory "
 				   + "   and c.categoryid = a.qc_complaint_category "
 				   + "   order by qc_requested_date asc  ";
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/getuserroles", method = RequestMethod.GET)
+	public @ResponseBody String getuserroles() {
+		
+		String sql = " select * "
+			       + " from user_roles "
+				   + " order by ur_id ";
 		try {
 			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
 			return gson.toJson(rows);
@@ -571,10 +602,13 @@ public class MainController {
 			@RequestParam(value = "location", required = true) String location,
 			@RequestParam(value = "categoryid", required = true) Integer categoryid,
 			@RequestParam(value = "statusid", required = true) String statusid,
+			@RequestParam(value = "fromdate", required = true) String fromdate,
+			@RequestParam(value = "todate", required = true) String todate,
+			@RequestParam(value = "department_id", required = true) Integer department_id,
 			@RequestParam(value = "modeid", required = true) String modeid
 			) {
 		
-		String sql = " select * from ccc_getdashboardcomplaintdetais('"+location+"',"+categoryid+","+statusid+","+modeid+") ";
+		String sql = " select * from ccc_getdashboardcomplaintdetais('"+location+"',"+categoryid+","+statusid+","+modeid+",'"+fromdate+"','"+todate+"',"+department_id+") ";
 		try {
 			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
 			return gson.toJson(rows);
@@ -878,6 +912,76 @@ public class MainController {
 		String sql = "select * from ccc_getuserdetails('"+username+"')" ;
 		try {
 			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			return gson.toJson(rows);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/sendsmsandemail", method = RequestMethod.GET)
+	public @ResponseBody String sendsmsandemail(
+			@RequestParam(value = "docketnumber", required = false) String docketnumber,
+			@RequestParam(value = "statusid", required = false) Integer statusid
+			) {
+		
+		String sql = "select * from ccc_getsmsemail_information('"+docketnumber+"')" ;
+		try {
+			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+			
+			java.util.Iterator<Map<String, Object>> it = rows.iterator();
+			
+			if(it.hasNext()){
+				Map<String,Object> map = (Map<String,Object>)it.next();
+				
+				System.out.println(map);
+				
+				String consumer_mobile_number = map.get("consumer_mobile_number").toString();
+				String officer_mobile_number = map.get("officer_mobile_number").toString();
+				String consumer_sms_content = "";
+				String officer_sms_content = "";
+				
+				Date objDate = new Date(); // Current System Date and time is assigned to objDate
+				System.out.println(objDate);
+				  String strDateFormat = "dd-MMM-yyyy hh:mm:ss a"; //Date format is Specified
+				  SimpleDateFormat objSDF = new SimpleDateFormat(strDateFormat); //Date format string is passed as an argument to the Date format object
+				  System.out.println(objSDF.format(objDate)); //Date formatting is applied to the current date
+				  String todaysdate = objSDF.format(objDate);
+				
+				if(statusid == 3){
+					
+					consumer_sms_content = "Dear "+map.get("consumer_name").toString()+" , your docket number "+docketnumber 
+							+ " REJECTED due to technical issues on "+todaysdate;
+					
+					officer_sms_content  = " Docket number "+docketnumber + " is REJECTED "+todaysdate; 
+							
+				}else if(statusid == 7){
+					
+					consumer_sms_content = "Dear "+map.get("consumer_name").toString()+" , your docket number "+docketnumber 
+							+ " RESOLVED "+todaysdate;
+					
+					officer_sms_content  = " Docket number "+docketnumber + " is RESOLVED "+todaysdate; 
+					
+				}else{
+					
+					consumer_sms_content = "Dear "+map.get("consumer_name").toString()+" ,"
+							+ " we have received your complaint for "+map.get("subcategoryname").toString()
+							+ " and assigned to appropriate officer. Docket Number is "+docketnumber+ " for further assistence.";
+					
+					officer_sms_content  = map.get("subcategoryname").toString() + " is the following complaint for "
+							+ " Docket number - "+docketnumber+ ",Account Id - "+map.get("account_id").toString() 
+							+ " and open date - "+map.get("opendate").toString();
+				}
+				
+				
+				
+				SMSUtil.SendSMS(consumer_mobile_number, consumer_sms_content,ccchostname,cccworkingkey,cccsender,cccunicode);
+				SMSUtil.SendSMS(officer_mobile_number, officer_sms_content,ccchostname,cccworkingkey,cccsender,cccunicode);
+				
+				
+			}
+			
 			return gson.toJson(rows);
 		} catch (RuntimeException e) {
 			throw e;

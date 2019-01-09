@@ -66,5 +66,12 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 	 public List<User> getByEUM(@Param("uid") String uid);         
      	 
 	 User findOneByUsername(@Param("username") String username);
+	 
+	 public final static String getUserMaxid=" select max(cdr_id)+1 as max_cadreid from cadre ";	
+
+		@Query(value=getUserMaxid,nativeQuery = true)
+		public Long getUserMaxid();
+		
+		public List<User> findAllByOrderByUsername();
 	
 }

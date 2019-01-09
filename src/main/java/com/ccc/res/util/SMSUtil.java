@@ -10,76 +10,60 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 
-//import com.indigo.model.sms;
-//import com.indigo.service.smsLocalServiceUtil;
+import org.springframework.beans.factory.annotation.Value;
 
 public class SMSUtil {
 	
 	public static void main(String[] args) {
 		
-		try {
-			sendSMS("9844845442","HIIIIIIIIIIIIIIIIIIIII");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+			//SendSMS("9844845442","HIIIIIIIIIIIIIIIIIIIII");
+		
+		Date objDate = new Date(); // Current System Date and time is assigned to objDate
+		System.out.println(objDate);
+		  String strDateFormat = "dd-MMM-yyyy hh:mm:ss a"; //Date format is Specified
+		  SimpleDateFormat objSDF = new SimpleDateFormat(strDateFormat); //Date format string is passed as an argument to the Date format object
+		  System.out.println(objSDF.format(objDate)); //Date formatting is applied to the current date
+		
 	}
-
-	public static void sendSMS(String mobile, String message) throws IOException {
-		/*String username = "msbs2000";
-		String apikey = "RFb3Qa7R24zKk5YmBlfz";
-		String senderid = "INDINF";
-		String type="uni";//"txt";
-		URLConnection myURLConnection=null;
-		URL myURL=null;
-		BufferedReader reader=null;
-		String encoded_message=URLEncoder.encode(message); //encoding message 
-		String mainUrl="http://smshorizon.co.in/api/sendsms.php?"; //Send SMS API
 	
-		StringBuilder sbPostData= new StringBuilder(mainUrl);
-		sbPostData.append("user="+username); 
-		sbPostData.append("&apikey="+apikey);
-		sbPostData.append("&senderid="+senderid);
-		sbPostData.append("&message="+encoded_message);
-		sbPostData.append("&mobile="+mobile);
-		sbPostData.append("&type="+type);*/
+	public static void SendSMS(String mobile, String message, String ccchostname, String cccworkingkey, String cccsender, String cccunicode){
+		
+		String hostname = ccchostname;
+		String workingkey = cccworkingkey;
+		String sender = cccsender;
+		String unicode = cccunicode;
 		
 		URLConnection myURLConnection=null;
 		URL myURL=null;
 		BufferedReader reader=null;
 		String encoded_message=URLEncoder.encode(message); //encoding message 
-		//String mainUrl="http://117.239.178.202/sendsms.php?"; //Send SMS API
-		String mainUrl="http://promo.solutionsinfini.com/api/web2sms.php?workingkey=A63ca323fc56c0dae39479fe4b91a9a01&to=+919449445488&sender=BULKSMS&message=test&unicode=1"; //Send SMS API
+		//String mainUrl="http://promo.solutionsinfini.com/api/web2sms.php?workingkey=A63ca323fc56c0dae39479fe4b91a9a01&to=+919449445488&sender=BULKSMS&message=test&unicode=1"; //Send SMS API
 		
-		String campaign_id = "30";
-	
-		StringBuilder sbPostData= new StringBuilder(mainUrl);
-		sbPostData.append("&method=sms");
-		sbPostData.append("&message=test");
+		StringBuilder sbPostData= new StringBuilder(hostname);
+		sbPostData.append("?workingkey="+workingkey);
+		sbPostData.append("&sender="+sender);
+		sbPostData.append("&unicode="+unicode);
 		sbPostData.append("&to="+mobile);
-		sbPostData.append("&sender=BRAND");
-		//sbPostData.append("&campaign_id="+campaign_id);
-		
-		System.out.println(mainUrl);
-		
-		//mainUrl = sbPostData.toString();
+		sbPostData.append("&message="+encoded_message);
 		try{
-		    myURL = new URL(mainUrl);
+		    myURL = new URL(sbPostData.toString());
 		    myURLConnection = myURL.openConnection();
 		    myURLConnection.connect();
 		    reader= new BufferedReader(new InputStreamReader(myURLConnection.getInputStream()));
-		    String response;
+		    String response = reader.readLine();
+		    System.out.println("response : "+response);
 		    reader.close();
 		} 
 		catch (IOException e) { 
 			e.printStackTrace();
 		} 
 		System.out.println(mobile+" - "+message);
-	   }		
-	
-	}	
+	}
+}	
 	
 	
