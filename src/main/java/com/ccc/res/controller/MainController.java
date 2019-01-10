@@ -926,6 +926,10 @@ public class MainController {
 			@RequestParam(value = "statusid", required = false) Integer statusid
 			) {
 		
+		if(statusid == null){
+			statusid = 0;
+		}
+		
 		String sql = "select * from ccc_getsmsemail_information('"+docketnumber+"')" ;
 		try {
 			List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
@@ -1156,5 +1160,29 @@ public class MainController {
 		}
 	}
 	
+	public @ResponseBody String updatepassword(
+			@RequestParam(value = "userpassword",required=false)  String userpassword,
+			@RequestParam(value = "username",required=false)  String username) {
+		
+		String sql = "update users "
+				+ " set "
+				+ " password = '"+PasswordEncoderUtil.encodePassword(userpassword)+"' "
+				+ " where username = '"+username+"' "; 
+		  	
+		System.out.println(sql);
+		try {
+			/*List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);*/
+			
+			int result = jdbcTemplate.update(sql);
+			JSONObject json = new JSONObject();
+			json.put("status",( result > 0 ? "success" : "failure"));
+		
+			return gson.toJson(json);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 	
 }
